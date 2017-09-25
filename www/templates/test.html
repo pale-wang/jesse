@@ -1,0 +1,16 @@
+
+
+{% extends '__base__.html' %}
+{% block title %}日志{% endblock %}
+
+{% block content %}
+    <div class="uk-width-medium-3-4">
+        <h1>All users</h1>
+        {% for u in users %}
+        <p>{{ u.name }} / {{ u.email }}</p>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+
+
