@@ -110,7 +110,7 @@ class ModelMetaclass(type):
         #update `users` set name=? where `id`=?
         #lambda表达式将f为从mappings中获取f
         #f 参数来自fields
-        #为什么需要设置为 mappings.get(f).name or f
+        #设置为 mappings.get(f).name or f
         attrs['__update__'] = 'update `{}` set %s where `%s`=?'\
             .format(table_name,
                     ', '.join(map(lambda f: '`{}`=?'.format(mappings.get(f).name or f), fields)),

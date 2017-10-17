@@ -31,7 +31,7 @@ async def test_findAll(loop):
 
 async def test_insert(loop):
     await orm.create_pool(loop=loop, user='root', password='root', db='awesome')
-    u = User(name='王盛', email='wstnap@gmail.com', passwd='wshyWS1990', image='about:blank')
+    u = User(name='马芳园', email='mafangyuan@gmail.com', passwd='helloworld', image='about:blank')
     await u.save()
 
 async def test_blog_insert(loop):
