@@ -21,6 +21,16 @@ def get(path):
         return wrapper
     return decorator
 
+
+def post(path):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+        wrapper.__method__ = 'POST'
+        wrapper.__route__ = path
+    return decorator
+
 def has_var_kw_arg(fn):
     params = inspect.signature(fn).parameters
     for name, param in params.items():
