@@ -1,48 +1,56 @@
 import os, re
 from datetime import datetime
+from fabric.api import cd, run, put, local, lcd
+from fabric.state import env
 
-from fabric.api import *
+env.user = 'iknow'
+env.password = 'wonki^(*%'
+env.hosts = ['wshy.me']
 
-env.user='wshy'
-env.sudo_user='root'
-env.hosts=['128.199.227.35']
-
-db_user = 'www-data'
-db_password = 'www-data'
-
-_TAR_FILE = 'dist-awesome.tar.gz'
+_TAR_FILE = 'dist-jesse.tar.gz'
 
 def build():
-	includes = ['static', 'templates', 'transwarp', 'favicon.ico', '*.py']
+	includes = ['static', 'templates', '*.py']
 	excludes = ['test', '.*', '*.pyc', '*.pyo']
-	local('rm -f dist/%s' % _TAR_FILE)
-	with lcd(os.path.join(os.path.abspath('.'), 'www')):
-		cmd = ['tar', '--dereference', '-czvf', '../dist/%s' % _TAR_FILE]
-		cmd.extend(['--exclude=\'%s\'' % ex for ex in excludes])
+	local('rm -f dist/{}'.format(_TAR_FILE))
+	with lcd( os.path.join(os.path.abspath('.'), 'www') ):
+		# on linux use --deference or -h
+		# on mac use -h
+		# 需要验证
+		cmd = ['tar', '-h', '-czvf', '../dist/{}'.format(_TAR_FILE)]
+		cmd.extend(["--exclude='{}'".format(ex)  for ex in excludes])
 		cmd.extend(includes)
+		print(' '.join(cmd))
 		local(' '.join(cmd))
 
-_REMOTE_TMP_TAR = '/tmp/%s' % _TAR_FILE
-_REMOTE_BASE_DIR = '/srv/awesoome'
+
+
+_REMOTE_TMP_TAR = '/tmp/{}'.format(_TAR_FILE)
+_REMOTE_BASE_DIR = '/home/iknow'
 
 def deploy():
-	newdir = 'www-%s' % datetime.now().strftime('%y-%m-%d_%H.%M.%S')
-	run('rm -f %s' % _REMOTE_TMP_TAR)
-	put('dist/%s' % _TAR_FILE, _REMOTE_TMP_TAR)
-
+	newdir = 'jesse-{}'.format(datetime.now().strftime('%y-%m-%d_%H.%M.%S'))
+	# 移除原有的 /tmp/dist-jesse.tar.gz
+	run('rm -f {}'.format(_REMOTE_TMP_TAR))
+	# 将本地的dist/dist-jesse.tar.gz 推送到远端的 /tmp/dist-jesse.tar.gz
+	put('dist/{}'.format(_TAR_FILE), _REMOTE_TMP_TAR)
+	# 切换到远端的/home/iknow
 	with cd(_REMOTE_BASE_DIR):
-		dudo('mkdir %s' % newdir)
+		run('mkdir {}'.format(newdir))
+	# 切换到远端的/home/iknow/jesse-%y-%m-%d_%H.%M.%S/
+	with cd( '{}/{}'.format(_REMOTE_BASE_DIR, newdir) ):
+		# 解压缩/tmp/dist-jesse.tar.gz 到当前路径
+		run('tar -xzvf %s' % _REMOTE_TMP_TAR)
 
-	with cd('%s/%s' % (_REMOTE_BASE_DIR, newdir)):
-		sudo('tar -xzvf %s' % _REMOTE_TMP_TAR)
-
+	# 切换到远端的/home/iknow
 	with cd(_REMOTE_BASE_DIR):
-		sudo('rm -f www')
-		sudo('ln -s %s www' % newdir)
-		sudo('chown www-data:www-data www')
-		sudo('chown -R www-data:www-data %s' % newdir)
-
+		# 删除当前的www目录
+		run('rm -f www')
+		# 将新上传的jesse-%y-%m-%d_%H.%M.%S目录软连接到www
+		run('ln -s {} www'.format(newdir))
+'''		
 	with settings(warn_only=True):
 		sudo('supervisorctl stop awesome')
 		sudo('supervisorctl start awesome')
 		sudo('/etc/init.d/nginx reload')
+'''
